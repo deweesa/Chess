@@ -20,4 +20,7 @@ export const B_KING = '\u265a';
 export const B_PAWN_ROW = Array.from(B_PAWN.repeat(8));
 export const B_KING_ROW = [B_ROOK, B_KNIGHT, B_BISHOP, B_KING, B_QUEEN, B_BISHOP, B_KNIGHT, B_ROOK];
 
+//Special Pieces
+export const EMPTY = '_';
+
 
