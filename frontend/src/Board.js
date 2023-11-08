@@ -1,6 +1,7 @@
 import "./Board.css";
 import { useEffect, useState } from "react";
 import * as constants from './Pieces';
+import GenerateValidMoves from "./ValidMoveFactory";
 
 export default function Board() {
   const rows = 8;
@@ -18,29 +19,18 @@ export default function Board() {
     const result = [];
 
     result.push(constants.B_KING_ROW);
-    result.push(constants.B_PAWN_ROW);
-    for(let i = 2; i < rows-2; i++) {
+    for(let i = 1; i < rows-1; i++) {
       const row = Array.from(constants.EMPTY.repeat(8));
       result.push(row);
     }
-    result.push(constants.W_PAWN_ROW);
     result.push(constants.W_KING_ROW);
-
-    const initValidMoves = []
-    for(let i = 0; i < rows; i++) {
-      const row = new Array(cols).fill(0);
-      initValidMoves.push(row);
-    } 
-
-    setValidMoves(initValidMoves);
     setChessBoard(result);
+
+    const initValidMoves = GenerateEmptyBoard();
+    setValidMoves(initValidMoves);
   }, [])
 
   const handleClick = (r, c) => {
-    //todo: this wokrs perfectly as long as you only click a piece, it's location
-    //      and then another piece. If you start clicking "out of order" it's borked
-    validMoves[3][3] = 1;
-    setValidMoves(validMoves);
     let clickedLocation = chessBoard[r][c]
     if(clickedLocation === constants.EMPTY && !inHand) return;
 
@@ -49,12 +39,24 @@ export default function Board() {
       chessBoard[coords[0]][coords[1]] = constants.EMPTY;
 
       setChessBoard(chessBoard);
+      setValidMoves(GenerateEmptyBoard());
       setCoords([0,0])
     } else {
+      setValidMoves(GenerateValidMoves(clickedLocation, [r,c], chessBoard));
       setCoords([r,c])
     }
 
     setInHand(!inHand)
+  }
+
+  const GenerateEmptyBoard = () => {
+    const board = []
+    for(let i = 0; i < rows; i++) {
+      const row = new Array(cols).fill(0);
+      board.push(row);
+    } 
+
+    return board;
   }
 
   return (
