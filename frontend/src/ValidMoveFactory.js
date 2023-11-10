@@ -24,6 +24,7 @@ export default function GenerateValidMoves(piece, coords, board) {
     case constants.B_ROOK:
       return RooksMoves(coords, board, validMoves);
     default:
+      return PawnMoves(coords, board, validMoves);
   }
 }
 
@@ -206,4 +207,20 @@ function RooksMoves(coords, board, validMoves) {
   //todo: Handle if last piece is enemy
 
   return validMoves;
+}
+
+function PawnMoves(coords, board, validMoves) {
+  let piece = board[coords[0]][coords[1]];
+  let direction = IsWhite(piece) ? -1 : 1;
+  console.log(direction);
+  let rowRunner = coords[0] + direction;
+
+  if (board[rowRunner][coords[1]] === constants.EMPTY)
+    validMoves[rowRunner][coords[1]] = 1;
+
+  return validMoves;
+}
+
+function IsWhite(piece) {
+  return piece <= "\u2659" ? true : false;
 }
