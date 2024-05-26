@@ -1,7 +1,7 @@
 import "./Board.css";
 import { useEffect, useState } from "react";
 import * as constants from "./Pieces";
-import GenerateValidMoves from "./ValidMoveFactory";
+import { GenerateValidMoves, IsWhitePiece } from "./ValidMoveFactory";
 
 export default function Board() {
   const rows = 8;
@@ -33,16 +33,26 @@ export default function Board() {
 
   const handleClick = (r, c) => {
     let clickedLocation = chessBoard[r][c];
+
     if (clickedLocation === constants.EMPTY && !inHand) return;
 
     if (inHand) {
+      if(validMoves[r][c] === 0) {
+        setInHand(!inHand)
+        setValidMoves(GenerateEmptyBoard())
+        setCoords([0,0])
+        return
+      }
+
       chessBoard[r][c] = chessBoard[coords[0]][coords[1]];
       chessBoard[coords[0]][coords[1]] = constants.EMPTY;
 
       setChessBoard(chessBoard);
       setValidMoves(GenerateEmptyBoard());
       setCoords([0, 0]);
+      setTurn(!isWhiteTurn)
     } else {
+      if(isWhiteTurn !== IsWhitePiece(chessBoard[r][c])) return;
       setValidMoves(GenerateValidMoves(clickedLocation, [r, c], chessBoard));
       setCoords([r, c]);
     }
@@ -80,7 +90,12 @@ export default function Board() {
                         {rIndex}, {cIndex}: {chessBoard[rIndex][cIndex]}
                       </div>
                       {validMoves[rIndex][cIndex] ? (
-                        <div className="circle" />
+                        //<div className="circle" />
+                        validMoves[rIndex][cIndex] === 1 ? (
+                          <div className="empty-circle" />
+                        ) : (
+                          <div className="opponent-circle" />
+                        )
                       ) : (
                         ""
                       )}

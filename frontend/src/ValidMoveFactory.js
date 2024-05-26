@@ -1,6 +1,7 @@
+import { getByAltText } from "@testing-library/react";
 import * as constants from "./Pieces";
 
-export default function GenerateValidMoves(piece, coords, board) {
+export function GenerateValidMoves(piece, coords, board) {
   const validMoves = [];
   for (let i = 0; i < 8; i++) {
     const row = new Array(8).fill(0);
@@ -30,20 +31,19 @@ export default function GenerateValidMoves(piece, coords, board) {
 
 function KingsMoves(coords, board, validMoves) {
   for (let rowRunner = coords[0] - 1; rowRunner <= coords[0] + 1; rowRunner++) {
-    for (
-      let colRunner = coords[1] - 1;
-      colRunner <= coords[1] + 1;
-      colRunner++
-    ) {
+    for (let colRunner = coords[1] - 1; colRunner <= coords[1] + 1; colRunner++) {
       if (
         rowRunner >= 0 &&
         colRunner >= 0 &&
         rowRunner < 8 &&
-        colRunner < 8 &&
-        board[rowRunner][colRunner] === constants.EMPTY
+        colRunner < 8 
       ) {
-        console.log(`%d,%d`, rowRunner, colRunner);
-        validMoves[rowRunner][colRunner] = 1;
+        if(board[rowRunner][colRunner] === constants.EMPTY)
+          validMoves[rowRunner][colRunner] = 1;
+        else if(IsOpponent(board[coords[0]][coords[1]], board[rowRunner][colRunner])) {
+          validMoves[rowRunner][colRunner] = 2;
+          break;
+        }
       }
     }
   }
@@ -53,166 +53,116 @@ function KingsMoves(coords, board, validMoves) {
 
 function QueensMoves(coords, board, validMoves) {
   validMoves = RooksMoves(coords, board, validMoves);
-  return (validMoves = BishopsMoves(coords, board, validMoves));
+  validMoves = BishopsMoves(coords, board, validMoves);
+  return validMoves;
 }
 
 function BishopsMoves(coords, board, validMoves) {
-  let rowRunner, colRunner;
+  let dirs = [-1, 1];
+  let currPiece = board[coords[0]][coords[1]];
+  let rowMove, colMove
 
-  //Northwest
-  rowRunner = coords[0] - 1;
-  colRunner = coords[1] - 1;
-  while (rowRunner >= 0 && colRunner >= 0) {
-    if (board[rowRunner][colRunner] === constants.EMPTY)
-      validMoves[rowRunner][colRunner] = 1;
-    else break;
+  for(let i in dirs) {
+    rowMove = dirs[i];
+    for(let j in dirs) {
+      colMove = dirs[j];
 
-    rowRunner -= 1;
-    colRunner -= 1;
-  }
+      let rowRunner = coords[0];
+      let colRunner = coords[1];
 
-  //Southwest
-  rowRunner = coords[0] + 1;
-  colRunner = coords[1] - 1;
-  while (rowRunner < 8 && colRunner >= 0) {
-    if (board[rowRunner][colRunner] === constants.EMPTY)
-      validMoves[rowRunner][colRunner] = 1;
-    else break;
+      rowRunner += rowMove;
+      colRunner += colMove;
 
-    rowRunner += 1;
-    colRunner -= 1;
-  }
+      while(OnBoard(rowRunner, colRunner)) {
+        let position = board[rowRunner][colRunner]
+        if(position === constants.EMPTY)
+          validMoves[rowRunner][colRunner] = 1;
+        else if (IsOpponent(currPiece, position)) {
+          validMoves[rowRunner][colRunner] = 2;
+          break
+        } else {
+          break
+        }
 
-  //Southeast
-  rowRunner = coords[0] + 1;
-  colRunner = coords[1] + 1;
-  while (rowRunner < 8 && colRunner < 8) {
-    if (board[rowRunner][colRunner] === constants.EMPTY)
-      validMoves[rowRunner][colRunner] = 1;
-    else break;
-
-    rowRunner += 1;
-    colRunner += 1;
-  }
-
-  //Northeast
-  rowRunner = coords[0] - 1;
-  colRunner = coords[1] + 1;
-  while (rowRunner >= 0 && colRunner - 8) {
-    if (board[rowRunner][colRunner] === constants.EMPTY)
-      validMoves[rowRunner][colRunner] = 1;
-    else break;
-
-    rowRunner -= 1;
-    colRunner += 1;
+        rowRunner += rowMove
+        colRunner += colMove
+      }
+    }
   }
 
   return validMoves;
 }
 
 function KnightsMoves(coords, board, validMoves) {
-  let rowRunner, colRunner;
-  //North
-  rowRunner = coords[0] - 2;
-  if (rowRunner >= 0) {
-    colRunner = coords[1] - 1;
-    if (colRunner >= 0 && board[rowRunner][colRunner] === constants.EMPTY)
-      validMoves[rowRunner][colRunner] = 1;
+  let rowDirs = [-1, 1, 2, 2, 1, -1, -2, -2]
+  let colDirs = [2, 2, 1, -1, -2, -2, -1, 1]
 
-    colRunner += 2;
-    if (colRunner < 8 && board[rowRunner][colRunner] === constants.EMPTY)
-      validMoves[rowRunner][colRunner] = 1;
-  }
+  let currPiece = board[coords[0]][coords[1]];
+  let rowMove, colMove;
 
-  //South
-  rowRunner = coords[0] + 2;
-  if (rowRunner < 8) {
-    colRunner = coords[1] - 1;
-    if (colRunner >= 0 && board[rowRunner][colRunner] === constants.EMPTY)
-      validMoves[rowRunner][colRunner] = 1;
+  for(let i in rowDirs) {
+    rowMove = rowDirs[i]
+    colMove = colDirs[i]
 
-    colRunner += 2;
-    if (colRunner < 8 && board[rowRunner][colRunner] === constants.EMPTY)
-      validMoves[rowRunner][colRunner] = 1;
-  }
+    let rowRunner = coords[0];
+    let colRunner = coords[1];
 
-  //East
-  colRunner = coords[1] + 2;
-  if (colRunner >= 0) {
-    rowRunner = coords[0] - 1;
-    if (rowRunner >= 0 && board[rowRunner][colRunner] === constants.EMPTY)
-      validMoves[rowRunner][colRunner] = 1;
+    rowRunner += rowMove;
+    colRunner += colMove;
+    if(OnBoard(rowRunner, colRunner)) {
+      let position = board[rowRunner][colRunner]
+      if(position === constants.EMPTY)
+        validMoves[rowRunner][colRunner] = 1;
+      else {
+        if(IsOpponent(currPiece, position))
+          validMoves[rowRunner][colRunner] = 2;
 
-    rowRunner += 2;
-    if (rowRunner < 8 && board[rowRunner][colRunner] === constants.EMPTY)
-      validMoves[rowRunner][colRunner] = 1;
-  }
-
-  //West
-  colRunner = coords[1] - 2;
-  if (colRunner >= 0) {
-    rowRunner = coords[0] - 1;
-    if (rowRunner >= 0 && board[rowRunner][colRunner] === constants.EMPTY)
-      validMoves[rowRunner][colRunner] = 1;
-
-    rowRunner += 2;
-    if (rowRunner < 8 && board[rowRunner][colRunner] === constants.EMPTY)
-      validMoves[rowRunner][colRunner] = 1;
+        continue;
+      }
+    }
   }
 
   return validMoves;
 }
 
 function RooksMoves(coords, board, validMoves) {
-  let runner;
-  //North
-  runner = coords[0] - 1;
-  while (runner >= 0) {
-    if (board[runner][coords[1]] === constants.EMPTY)
-      validMoves[runner][coords[1]] = 1;
-    else break;
-    runner -= 1;
-  }
-  //todo: Handle if last piece is enemy
+  let rowDirs = [1, 0, -1, 0]
+  let colDirs = [0, 1, 0, -1]
+  let currPiece = board[coords[0]][coords[1]];
+  let rowMove, colMove;
 
-  //South
-  runner = coords[0] + 1;
-  while (runner < 8) {
-    console.log(runner);
-    if (board[runner][coords[1]] === constants.EMPTY)
-      validMoves[runner][coords[1]] = 1;
-    else break;
-    runner += 1;
-  }
-  //todo: Handle if last piece is enemy
+  for(let i in rowDirs) {
+    rowMove = rowDirs[i]
+    colMove = colDirs[i]
 
-  //East
-  runner = coords[1] + 1;
-  while (runner < 8) {
-    if (board[coords[0]][runner] === constants.EMPTY)
-      validMoves[coords[0]][runner] = 1;
-    else break;
-    runner += 1;
-  }
-  //todo: Handle if last piece is enemy
+    let rowRunner = coords[0];
+    let colRunner = coords[1];
 
-  //West
-  runner = coords[1] - 1;
-  while (runner >= 0) {
-    if (board[coords[0]][runner] === constants.EMPTY)
-      validMoves[coords[0]][runner] = 1;
-    else break;
-    runner -= 1;
+    rowRunner += rowMove;
+    colRunner += colMove;
+
+    while(OnBoard(rowRunner, colRunner)) {
+      let position = board[rowRunner][colRunner]
+      if(position === constants.EMPTY)
+        validMoves[rowRunner][colRunner] = 1;
+      else if (IsOpponent(currPiece, position)) {
+        validMoves[rowRunner][colRunner] = 2;
+        break
+      } else {
+        break
+      }
+
+      rowRunner += rowMove
+      colRunner += colMove
+    }
   }
-  //todo: Handle if last piece is enemy
 
   return validMoves;
 }
 
 function PawnMoves(coords, board, validMoves) {
   let piece = board[coords[0]][coords[1]];
-  let direction = IsWhite(piece) ? -1 : 1;
-  console.log(direction);
+  let direction = IsWhitePiece(piece) ? -1 : 1;
   let rowRunner = coords[0] + direction;
 
   if (board[rowRunner][coords[1]] === constants.EMPTY)
@@ -221,6 +171,17 @@ function PawnMoves(coords, board, validMoves) {
   return validMoves;
 }
 
-function IsWhite(piece) {
+function IsOpponent(currPiece, otherPiece) {
+  let currIsWhite = IsWhitePiece(currPiece)
+  let otherIsWhite = IsWhitePiece(otherPiece)
+
+  return currIsWhite !== otherIsWhite
+}
+
+function OnBoard(rowRunner, colRunner) {
+  return (rowRunner >= 0 && rowRunner < 8) && (colRunner >= 0 && colRunner < 8)
+}
+
+export function IsWhitePiece(piece) {
   return piece <= "\u2659" ? true : false;
 }
