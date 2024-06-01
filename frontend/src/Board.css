@@ -1,11 +1,19 @@
 .board {
+  margin: auto;
+  padding: auto;
+  width: auto;
+  height: auto;
   border: 20px;
   border-color: red;
-  display: inline-block;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
 }
 
 .row {
   display: flex;
+  width: fit-content;
 }
 
 .box {
@@ -19,4 +27,18 @@
 
 .white {
   background-color: white;
+}
+
+.empty-circle {
+  height: 25px;
+  width: 25px;
+  border-radius: 50%;
+  background-color: blue;
+}
+
+.opponent-circle {
+  height: 25px;
+  width: 25px;
+  border-radius: 50%;
+  background-color: red;
 }
