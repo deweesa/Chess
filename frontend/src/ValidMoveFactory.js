@@ -1,4 +1,3 @@
-import { getByAltText } from "@testing-library/react";
 import * as constants from "./Pieces";
 
 export function GenerateValidMoves(piece, coords, board) {
@@ -163,15 +162,39 @@ function RooksMoves(coords, board, validMoves) {
 function PawnMoves(coords, board, validMoves) {
   let piece = board[coords[0]][coords[1]];
   let direction = IsWhitePiece(piece) ? -1 : 1;
-  let rowRunner = coords[0] + direction;
+  let distance = (IsWhitePiece(piece) && coords[0] === 6 || !IsWhitePiece(piece) && coords[0] === 1) ? 2 : 1;
+  let runner = coords[0];
 
-  if (board[rowRunner][coords[1]] === constants.EMPTY)
-    validMoves[rowRunner][coords[1]] = 1;
+  console.log(distance)
+  for(let i = 0; i < distance; i++) {
+    runner += direction;
+
+    console.log(coords[0], " ", runner)
+    if(board[runner][coords[1]] !== constants.EMPTY)
+      break;
+
+    validMoves[runner][coords[1]] = 1;
+  }
+
+  //left attack
+  let attackRow = coords[0] + direction;
+  let attackCol = coords[1] - 1;
+
+  if(OnBoard(attackRow, attackCol) && IsOpponent(piece, board[attackRow][attackCol]))
+    validMoves[attackRow][attackCol] = 2;
+
+  //right attack
+  attackRow = coords[0] + direction;
+  attackCol = coords[1] + 1;
+
+  if(OnBoard(attackRow, attackCol) && IsOpponent(piece, board[attackRow][attackCol]))
+    validMoves[attackRow][attackCol] = 2;
 
   return validMoves;
 }
 
 function IsOpponent(currPiece, otherPiece) {
+  if(otherPiece === constants.EMPTY) return false;
   let currIsWhite = IsWhitePiece(currPiece)
   let otherIsWhite = IsWhitePiece(otherPiece)
 
